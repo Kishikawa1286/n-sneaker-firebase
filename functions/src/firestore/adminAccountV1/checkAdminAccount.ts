@@ -20,5 +20,5 @@ export default functions128MB.https
     }
     const isAdmin = customClaims.admin as boolean | undefined;
 
-    return isAdmin ?? false;
+    return isAdmin === undefined ? false : isAdmin;
   });
