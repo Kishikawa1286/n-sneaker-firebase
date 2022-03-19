@@ -3,7 +3,7 @@ import { functions128MB } from '../../utils/functions';
 
 export default functions128MB.firestore
   .document('admin_accounts_v1/{docID}').onDelete((snap) => {
-    const newAdminAccount = snap.data();
-    if (newAdminAccount === undefined) return;
-    admin.auth().setCustomUserClaims(newAdminAccount.id, { admin: false });
+    const { id } = snap;
+    if (id === undefined) return;
+    admin.auth().setCustomUserClaims(id, { admin: false });
   });
