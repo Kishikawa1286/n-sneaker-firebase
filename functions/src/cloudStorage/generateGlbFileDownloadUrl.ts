@@ -10,7 +10,7 @@ export default functions128MB.https
   .onCall(async (data: GenerateGlbFileDownloadUrlArgs): Promise<string> => {
     const productId = data.product_id;
     const productGlbFileId = data.product_glb_file_id;
-    const filePath = `products/glb_files/${productId}/${productGlbFileId}.glb`;
+    const filePath = `product_glb_files/${productId}/${productGlbFileId}.glb`;
     try {
       const bucket = admin.storage().bucket(); // default bucket
       const file = bucket.file(filePath);
