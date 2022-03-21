@@ -18,7 +18,7 @@ export default interface ProductGlbFileV1 {
   product_tags: Array<string>,
 
   product_title_jp: string,
-  product_verndor_jp: string,
+  product_vendor_jp: string,
   product_series_jp: string,
   product_tags_jp: Array<string>,
 }

@@ -66,7 +66,7 @@ export default functions128MB.https
         product_id: product.id,
 
         title: product.title,
-        vendor: product.verndor,
+        vendor: product.vendor,
         series: product.series,
         tags: product.tags,
         description: product.description,
@@ -75,7 +75,7 @@ export default functions128MB.https
         other_statement: product.other_statement,
 
         title_jp: product.title_jp,
-        verndor_jp: product.verndor_jp,
+        vendor_jp: product.vendor_jp,
         series_jp: product.series_jp,
         tags_jp: product.tags_jp,
         description_jp: product.description_jp,

@@ -23,7 +23,7 @@ export default interface CollectionProductV1 {
   other_statement: string,
 
   title_jp: string,
-  verndor_jp: string,
+  vendor_jp: string,
   series_jp: string,
   tags_jp: Array<string>,
   description_jp: string,

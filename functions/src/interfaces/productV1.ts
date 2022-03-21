@@ -4,7 +4,7 @@ export default interface ProductV1 {
   id: string,
 
   title: string,
-  verndor: string,
+  vendor: string,
   series: string,
   tags: Array<string>,
   description: string,
@@ -13,7 +13,7 @@ export default interface ProductV1 {
   other_statement: string,
 
   title_jp: string,
-  verndor_jp: string,
+  vendor_jp: string,
   series_jp: string,
   tags_jp: Array<string>,
   description_jp: string,
