@@ -1,6 +1,8 @@
 import * as admin from 'firebase-admin';
 
 export default interface ProductV1 {
+  vivsible: boolean,
+
   id: string,
 
   title: string,
