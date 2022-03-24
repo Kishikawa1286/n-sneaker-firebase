@@ -1,6 +1,9 @@
 import admin from '../utils/firestore';
 
 export default interface ProductGlbFileV1 {
+  available_for_viewer: boolean,
+  available_for_ar: boolean,
+
   id: string,
 
   title: string,
