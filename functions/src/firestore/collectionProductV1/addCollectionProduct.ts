@@ -76,6 +76,22 @@ const incrementNumberOfCollectionProducts = async (accountId: string): Promise<v
   }
 };
 
+const collectionProductExists = async (accountId: string, productId: string): Promise<boolean> => {
+  try {
+    const querySnapshot = await admin.firestore()
+      .collection('collection_products_v1')
+      .where('account_id', '==', accountId)
+      .where('product_id', '==', productId)
+      .get();
+    if (querySnapshot.docs.length === 0) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    throw Error('failed to fetch collection product.');
+  }
+};
+
 interface AddCollectionProductArgs {
   product_id: string,
   payment_method: string,
@@ -95,6 +111,10 @@ export default functions128MB.https
 
       if (!(await authenticateRecipt(uid, productId))) {
         throw Error('recipt validation failed.');
+      }
+
+      if (await collectionProductExists(uid, productId)) {
+        throw Error('document already exists.');
       }
 
       const product = await fetchProduct(productId);
