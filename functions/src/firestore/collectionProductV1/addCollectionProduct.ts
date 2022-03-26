@@ -1,13 +1,38 @@
-import { CallableContext } from 'firebase-functions/v1/https';
+import axios from 'axios';
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
 import ProductV1 from '../../interfaces/productV1';
 import admin from '../../utils/firestore';
 import { functions128MB } from '../../utils/functions';
 
+const ACCESS_TOKEN = process.env.REVENUECAT_KEY;
+const endPoint = (appUserId: string): string => `https://api.revenuecat.com/v1/subscribers/${appUserId}`;
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const authenticateRecipt = async (context: CallableContext): Promise<boolean> => {
-  const reciptAuthenticated = true;
-  return reciptAuthenticated;
+const authenticateRecipt = async (uid: string, productId: string): Promise<boolean> => {
+  try {
+    const res = await axios.get(endPoint(uid), {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+      },
+    });
+    const { subscriber } = res.data;
+    if (subscriber === undefined) {
+      throw Error('recipt validation failed. (res.data.subscriber is undefined)');
+    }
+    const { entitlements } = subscriber;
+    if (entitlements === undefined) {
+      throw Error('recipt validation failed. (res.data.subscriber.entitlements is undefined)');
+    }
+    if (entitlements[productId] === undefined) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error(e);
+    throw Error('recipt validation failed.');
+  }
 };
 
 const fetchProduct = async (productId: string): Promise<ProductV1> => {
@@ -25,6 +50,32 @@ const fetchProduct = async (productId: string): Promise<ProductV1> => {
   }
 };
 
+const incrementNumberOfHolders = async (productId: string): Promise<void> => {
+  try {
+    const ref = admin.firestore()
+      .collection('products_v1')
+      .doc(productId);
+    ref.set({
+      number_of_holders: admin.firestore.FieldValue.increment(1),
+    }, { merge: true });
+  } catch (e) {
+    throw Error('failed to increment number_of_holders.');
+  }
+};
+
+const incrementNumberOfCollectionProducts = async (accountId: string): Promise<void> => {
+  try {
+    const ref = admin.firestore()
+      .collection('accounts_v1')
+      .doc(accountId);
+    ref.set({
+      number_of_collection_products: admin.firestore.FieldValue.increment(1),
+    }, { merge: true });
+  } catch (e) {
+    throw Error('failed to increment number_of_holders.');
+  }
+};
+
 interface AddCollectionProductArgs {
   product_id: string,
   payment_method: string,
@@ -32,9 +83,6 @@ interface AddCollectionProductArgs {
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
-  // TODO: 型安全が保証された段階で消す
-    admin.firestore().settings({ ignoreUndefinedProperties: true });
-
     const productId = data.product_id;
     const paymentMethod = data.payment_method;
 
@@ -45,8 +93,8 @@ export default functions128MB.https
       }
       const { uid } = auth;
 
-      if (!(await authenticateRecipt(context))) {
-        throw Error('authenticating reciept failed.');
+      if (!(await authenticateRecipt(uid, productId))) {
+        throw Error('recipt validation failed.');
       }
 
       const product = await fetchProduct(productId);
@@ -88,6 +136,8 @@ export default functions128MB.https
         transparent_background_images: product.transparent_background_images,
       };
       await documentRef.create(collectionProduct);
+      await incrementNumberOfHolders(productId);
+      await incrementNumberOfCollectionProducts(uid);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       console.error(e);

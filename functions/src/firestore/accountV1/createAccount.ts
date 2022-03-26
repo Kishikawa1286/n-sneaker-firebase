@@ -16,7 +16,7 @@ export default functions128MB.https.onCall(async (data, context) => {
   const now = admin.firestore.Timestamp.now();
   const account: AccountV1 = {
     id: uid,
-    number_of_products_purchased: 0,
+    number_of_collection_products: 0,
     created_at: now,
     last_edited_at: now,
   };

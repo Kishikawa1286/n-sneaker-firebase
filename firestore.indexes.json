@@ -15,6 +15,20 @@
       ]
     },
     {
+      "collectionGroup": "product_glb_files_v1",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "available_for_viewer",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "products_v1",
       "queryScope": "COLLECTION",
       "fields": [
@@ -38,6 +52,24 @@
         },
         {
           "fieldPath": "visible",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "products_v1",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "series",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "vivsible_in_market",
           "order": "ASCENDING"
         },
         {
