@@ -3,6 +3,9 @@ import * as admin from 'firebase-admin';
 export default interface CollectionProductV1 {
   id: string,
 
+  app_store_id: string,
+  play_store_id: string,
+
   account_id: string,
   payment_method: string,
 

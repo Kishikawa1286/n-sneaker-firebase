@@ -15,6 +15,9 @@ export default interface ProductGlbFileV1 {
 
   product_id: string,
 
+  product_app_store_id: string,
+  product_play_store_id: string,
+
   product_title: string,
   product_vendor: string,
   product_series: string,
