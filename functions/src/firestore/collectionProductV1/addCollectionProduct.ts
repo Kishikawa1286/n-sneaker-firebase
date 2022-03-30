@@ -4,28 +4,26 @@ import ProductV1 from '../../interfaces/productV1';
 import admin from '../../utils/firestore';
 import { functions128MB } from '../../utils/functions';
 
-const ACCESS_TOKEN = process.env.REVENUECAT_KEY;
-const endPoint = (appUserId: string): string => `https://api.revenuecat.com/v1/subscribers/${appUserId}`;
+const { ADAPTY_KEY } = process.env;
+axios.defaults.baseURL = 'https://api.adapty.io/api/v1/sdk';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const authenticateRecipt = async (uid: string, productId: string): Promise<boolean> => {
   try {
-    const res = await axios.get(endPoint(uid), {
+    const res = await axios.get(`/profiles/${uid}/`, {
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json;charset=utf-8',
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+        Authorization: `Api-Key ${ADAPTY_KEY}`,
       },
     });
-    const { subscriber } = res.data;
-    if (subscriber === undefined) {
-      throw Error('recipt validation failed. (res.data.subscriber is undefined)');
+    const { data } = res.data;
+    if (data === undefined) {
+      throw Error('recipt validation failed. (res.data.data is undefined)');
     }
-    const { entitlements } = subscriber;
-    if (entitlements === undefined) {
-      throw Error('recipt validation failed. (res.data.subscriber.entitlements is undefined)');
+    const paidAccessLevels = data.paid_access_levels;
+    if (paidAccessLevels === undefined) {
+      throw Error('recipt validation failed. (res.data.data.paid_access_levels is undefined)');
     }
-    if (entitlements[productId] === undefined) {
+    if (paidAccessLevels[productId] === undefined) {
       return false;
     }
     return true;
@@ -95,12 +93,14 @@ const collectionProductExists = async (accountId: string, productId: string): Pr
 interface AddCollectionProductArgs {
   product_id: string,
   payment_method: string,
+  receipt: string,
 }
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
     const paymentMethod = data.payment_method;
+    const { receipt } = data;
 
     const { auth } = context;
     try {
@@ -130,6 +130,7 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: paymentMethod,
+        receipt,
 
         created_at: now,
         last_edited_at: now,

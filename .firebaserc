@@ -1,8 +1,7 @@
 {
   "projects": {
-    "default": "n-sneaker-development",
-    "production": "n-sneaker-production",
-    "temp": "n-sneaker-temp"
+    "development": "n-sneaker-development",
+    "production": "n-sneaker-production"
   },
   "targets": {}
 }
