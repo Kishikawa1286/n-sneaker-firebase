@@ -93,14 +93,12 @@ const collectionProductExists = async (accountId: string, productId: string): Pr
 interface AddCollectionProductArgs {
   product_id: string,
   payment_method: string,
-  receipt: string,
 }
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
     const paymentMethod = data.payment_method;
-    const { receipt } = data;
 
     const { auth } = context;
     try {
@@ -130,7 +128,6 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: paymentMethod,
-        receipt,
 
         created_at: now,
         last_edited_at: now,

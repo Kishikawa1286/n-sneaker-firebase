@@ -8,7 +8,6 @@ export default interface CollectionProductV1 {
 
   account_id: string,
   payment_method: string,
-  receipt: string,
 
   created_at: admin.firestore.Timestamp,
   last_edited_at: admin.firestore.Timestamp,
