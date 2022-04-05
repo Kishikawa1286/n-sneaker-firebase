@@ -5,9 +5,6 @@ export default interface ProductV1 {
 
   id: string,
 
-  app_store_id: string,
-  play_store_id: string,
-
   title: string,
   vendor: string,
   series: string,

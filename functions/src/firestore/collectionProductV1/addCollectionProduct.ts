@@ -123,9 +123,6 @@ export default functions128MB.https
       const collectionProduct: CollectionProductV1 = {
         id: documentRef.id,
 
-        app_store_id: product.app_store_id,
-        play_store_id: product.play_store_id,
-
         account_id: uid,
         payment_method: paymentMethod,
 

@@ -34,9 +34,6 @@ const addDefaultCollectionProduct = async (accountId: string)
     const collectionProduct: CollectionProductV1 = {
       id: collectionProductDocumentRef.id,
 
-      app_store_id: product.app_store_id,
-      play_store_id: product.play_store_id,
-
       account_id: accountId,
       payment_method: 'sign_up_reward',
 
