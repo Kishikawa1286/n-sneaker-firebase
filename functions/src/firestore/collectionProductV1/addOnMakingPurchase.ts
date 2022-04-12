@@ -1,41 +1,23 @@
+import axios from 'axios';
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
 import { fetchNonSubscriptions } from '../../utils/adapty/nonSubscription';
 import admin from '../../utils/firestore';
 import { incrementNumberOfCollectionProducts } from '../../utils/firestore/accountV1';
-import { collectionProductExists, fetchAllCollectionProducts } from '../../utils/firestore/collectionProductV1';
+import { collectionProductExists, generatePaymentMethod, purchasedCollectionProductAlreadyExists } from '../../utils/firestore/collectionProductV1';
 import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions128MB } from '../../utils/functions';
 
-const { FLAVOR } = process.env;
+axios.defaults.baseURL = 'https://api.adapty.io/api/v1/sdk';
 
-const convertPaywallIdToVendorProductIds = (paywallId: string): Array<string> => {
-  if (FLAVOR === 'prod') {
-    return [
-      `com.nevermind.nsneaker.play_store.${paywallId}`,
-      `com.nevermind.nsneaker.app_store.${paywallId}`,
-    ];
-  }
-  return [
-    `com.nevermind.nsneakerdev.play_store.${paywallId}`,
-    `com.nevermind.nsneakerdev.app_store.${paywallId}`,
-  ];
-};
-
-const generatePaymentMethod = (store: string): string => {
-  if (store === 'play_store') {
-    return 'play_store_in_app_purchase';
-  }
-  if (store === 'app_store') {
-    return 'app_store_in_app_purchase';
-  }
-  return 'unknown';
-};
-
-interface AddCollectionProductArgs { product_id: string }
+interface AddCollectionProductArgs {
+  product_id: string,
+  purchase_id: string,
+}
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
+    const purchaseId = data.purchase_id;
 
     const { auth } = context;
     try {
@@ -48,33 +30,21 @@ export default functions128MB.https
         throw Error('document already exists.');
       }
 
-      const product = await fetchProduct(productId);
-
-      const allCollectionProducts = await fetchAllCollectionProducts(uid, undefined);
-      const purchasedAtOfAllCollectionProducts = allCollectionProducts
-        .map((collectionProduct) => collectionProduct.purchased_at);
-      const restorableVendorProductIds = [
-        ...product.restorable_adapty_vendor_product_ids,
-        ...convertPaywallIdToVendorProductIds(product.adapty_paywall_id),
-      ];
-
-      const nonSubscriptions = await fetchNonSubscriptions(uid);
-      // adaptyのデータとfirestoreのデータを照合してfirestoreに登録できていない決済を見つける
-      const incompletedNonSubscriptions = nonSubscriptions
-        .filter(
-          (nonSubscription) => purchasedAtOfAllCollectionProducts
-            .includes(nonSubscription.purchased_at),
-        );
-      const restorableNonSubscriptions = incompletedNonSubscriptions
-        .filter(
-          (nonSubscription) => restorableVendorProductIds
-            .includes(nonSubscription.vendor_product_id ?? 'not set'),
-        );
-
-      if (restorableNonSubscriptions.length === 0) {
-        throw Error('no restorable non-subscription exists.');
+      const allNonSubscriptions = await fetchNonSubscriptions(uid);
+      // 空または要素1つ
+      const nonSubscriptionsSpecifiedWithVendorProductId = allNonSubscriptions.filter(
+        (ns) => ns.purchase_id === purchaseId,
+      );
+      if (nonSubscriptionsSpecifiedWithVendorProductId.length === 0) {
+        throw Error('nonSubscriptionsSpecifiedWithVendorProductId is empty.');
       }
-      const restoredNonSubscription = restorableNonSubscriptions[0];
+      const nonSubscription = nonSubscriptionsSpecifiedWithVendorProductId[0];
+
+      if (await purchasedCollectionProductAlreadyExists(uid, nonSubscription.purchase_id)) {
+        throw Error('document whose purchased_at is given one already exists.');
+      }
+
+      const product = await fetchProduct(productId);
 
       // no document created yet
       const documentRef = admin.firestore().collection('collection_products_v1').doc();
@@ -83,9 +53,10 @@ export default functions128MB.https
         id: documentRef.id,
 
         account_id: uid,
-        payment_method: generatePaymentMethod(restoredNonSubscription.store ?? ''),
-        purchased_at: restoredNonSubscription.purchased_at,
-        vendor_product_id: restoredNonSubscription.vendor_product_id ?? '',
+        payment_method: generatePaymentMethod(nonSubscription.store ?? ''),
+        purchase_id: nonSubscription.purchase_id,
+        purchased_at: nonSubscription.purchased_at,
+        vendor_product_id: nonSubscription.vendor_product_id ?? '',
 
         created_at: now,
         last_edited_at: now,

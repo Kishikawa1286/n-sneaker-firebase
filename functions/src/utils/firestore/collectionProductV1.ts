@@ -1,6 +1,8 @@
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
 import admin from '../firestore';
 
+const { FLAVOR } = process.env;
+
 export const collectionProductExists = async (accountId: string, productId: string):
 Promise<boolean> => {
   try {
@@ -8,6 +10,7 @@ Promise<boolean> => {
       .collection('collection_products_v1')
       .where('account_id', '==', accountId)
       .where('product_id', '==', productId)
+      .limit(1)
       .get();
     if (querySnapshot.docs.length === 0) {
       return false;
@@ -20,13 +23,14 @@ Promise<boolean> => {
 
 export const purchasedCollectionProductAlreadyExists = async (
   accountId: string,
-  purchasedAt: string,
+  purchasedId: string,
 ):Promise<boolean> => {
   try {
     const querySnapshot = await admin.firestore()
       .collection('collection_products_v1')
       .where('account_id', '==', accountId)
-      .where('purchased_at', '==', purchasedAt)
+      .where('purchased_id', '==', purchasedId)
+      .limit(1)
       .get();
     if (querySnapshot.docs.length === 0) {
       return false;
@@ -66,4 +70,27 @@ export const fetchAllCollectionProducts = async (
   } catch (e) {
     throw Error('failed to fetch collection product.');
   }
+};
+
+export const convertPaywallIdToVendorProductIds = (paywallId: string): Array<string> => {
+  if (FLAVOR === 'prod') {
+    return [
+      `com.nevermind.nsneaker.play_store.${paywallId}`,
+      `com.nevermind.nsneaker.app_store.${paywallId}`,
+    ];
+  }
+  return [
+    `com.nevermind.nsneakerdev.play_store.${paywallId}`,
+    `com.nevermind.nsneakerdev.app_store.${paywallId}`,
+  ];
+};
+
+export const generatePaymentMethod = (store: string): string => {
+  if (store === 'play_store') {
+    return 'play_store_in_app_purchase';
+  }
+  if (store === 'app_store') {
+    return 'app_store_in_app_purchase';
+  }
+  return 'unknown';
 };
