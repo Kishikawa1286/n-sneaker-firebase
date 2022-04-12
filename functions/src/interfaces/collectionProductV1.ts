@@ -5,6 +5,8 @@ export default interface CollectionProductV1 {
 
   account_id: string,
   payment_method: string,
+  vendor_product_id: string,
+  purchased_at: string, // Iso8601
 
   created_at: admin.firestore.Timestamp,
   last_edited_at: admin.firestore.Timestamp,

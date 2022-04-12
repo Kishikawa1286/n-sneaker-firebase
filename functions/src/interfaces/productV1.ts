@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 
 export default interface ProductV1 {
   adapty_paywall_id: string,
+  restorable_adapty_vendor_product_ids: Array<string>,
 
   vivsible_in_market: boolean,
 

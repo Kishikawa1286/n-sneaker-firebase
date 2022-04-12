@@ -1,13 +1,17 @@
 import axios from 'axios';
+import AdaptyNonSubscription from '../../interfaces/adaptyNonSubscription';
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
-import ProductV1 from '../../interfaces/productV1';
 import admin from '../../utils/firestore';
+import { incrementNumberOfCollectionProducts } from '../../utils/firestore/accountV1';
+import { collectionProductExists, purchasedCollectionProductAlreadyExists } from '../../utils/firestore/collectionProductV1';
+import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions128MB } from '../../utils/functions';
 
 const { ADAPTY_KEY } = process.env;
 axios.defaults.baseURL = 'https://api.adapty.io/api/v1/sdk';
 
-const authenticateRecipt = async (uid: string, productId: string): Promise<boolean> => {
+const authenticateRecipt = async (uid: string, vendorProductId: string, purchasedAt: string):
+Promise<boolean> => {
   try {
     const res = await axios.get(`/profiles/${uid}/`, {
       headers: {
@@ -17,88 +21,55 @@ const authenticateRecipt = async (uid: string, productId: string): Promise<boole
     });
     const { data } = res.data;
     if (data === undefined) {
-      throw Error('recipt validation failed. (res.data.data is undefined)');
+      throw Error('validation failed. (res.data.data is undefined)');
     }
-    const paidAccessLevels = data.paid_access_levels;
-    if (paidAccessLevels === undefined) {
-      throw Error('recipt validation failed. (res.data.data.paid_access_levels is undefined)');
+    // non subscription全部
+    const allNonSubscriptions = data.non_subscriptions;
+    if (allNonSubscriptions === undefined) {
+      throw Error('validation failed. (res.data.data.non_subscriptions is undefined)');
     }
-    if (paidAccessLevels[productId] === undefined) {
+    // 指定したpaywallのnon subscriptionの配列
+    // 型定義を作っていないのでとりあえずArray<any>にキャストしている
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nonSubscriptions = allNonSubscriptions[vendorProductId] as
+      Array<AdaptyNonSubscription> | undefined;
+    // 決済情報がない場合はこれなので、throwはせず、falseを返す
+    if (!nonSubscriptions) {
+      console.error(`validation failed. (res.data.data.non_subscriptions.${vendorProductId} is undefined)`);
       return false;
     }
-    return true;
+    // APIドキュメントを読む限りない(undefinedになる)はずだが、空配列の場合の処理
+    if (nonSubscriptions.length === 0) {
+      throw Error(`validation failed. (res.data.data.non_subscriptions.${vendorProductId} is empty array)`);
+    }
+    const purchasedAtOfNonSubscriptions = nonSubscriptions
+      .map<string>((nonSubscription) => {
+      const purchasedAtOfNonSubscription = nonSubscription.purchased_at as string | null;
+      if (!purchasedAtOfNonSubscription) {
+        return '';
+      }
+      return purchasedAtOfNonSubscription;
+    });
+    return purchasedAtOfNonSubscriptions.includes(purchasedAt);
   } catch (e) {
     console.error(e);
-    throw Error('recipt validation failed.');
-  }
-};
-
-const fetchProduct = async (productId: string): Promise<ProductV1> => {
-  try {
-    const productDocumentSnapshot = await admin.firestore()
-      .collection('products_v1')
-      .doc(productId).get();
-    const product = productDocumentSnapshot.data() as ProductV1;
-    if (product === undefined) {
-      throw Error('failed to fetch product.');
-    }
-    return product;
-  } catch (e) {
-    throw Error('failed to fetch product.');
-  }
-};
-
-const incrementNumberOfHolders = async (productId: string): Promise<void> => {
-  try {
-    const ref = admin.firestore()
-      .collection('products_v1')
-      .doc(productId);
-    ref.set({
-      number_of_holders: admin.firestore.FieldValue.increment(1),
-    }, { merge: true });
-  } catch (e) {
-    throw Error('failed to increment number_of_holders.');
-  }
-};
-
-const incrementNumberOfCollectionProducts = async (accountId: string): Promise<void> => {
-  try {
-    const ref = admin.firestore()
-      .collection('accounts_v1')
-      .doc(accountId);
-    ref.set({
-      number_of_collection_products: admin.firestore.FieldValue.increment(1),
-    }, { merge: true });
-  } catch (e) {
-    throw Error('failed to increment number_of_holders.');
-  }
-};
-
-const collectionProductExists = async (accountId: string, productId: string): Promise<boolean> => {
-  try {
-    const querySnapshot = await admin.firestore()
-      .collection('collection_products_v1')
-      .where('account_id', '==', accountId)
-      .where('product_id', '==', productId)
-      .get();
-    if (querySnapshot.docs.length === 0) {
-      return false;
-    }
-    return true;
-  } catch (e) {
-    throw Error('failed to fetch collection product.');
+    return false;
   }
 };
 
 interface AddCollectionProductArgs {
   product_id: string,
   payment_method: string,
+  purchased_at: string,
+  vendor_product_id: string,
 }
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
     const paymentMethod = data.payment_method;
+    const purchasedAt = data.purchased_at;
+    const vendorProductId = data.vendor_product_id;
 
     const { auth } = context;
     try {
@@ -107,12 +78,16 @@ export default functions128MB.https
       }
       const { uid } = auth;
 
-      if (!(await authenticateRecipt(uid, productId))) {
+      if (!(await authenticateRecipt(uid, vendorProductId, purchasedAt))) {
         throw Error('recipt validation failed.');
       }
 
       if (await collectionProductExists(uid, productId)) {
         throw Error('document already exists.');
+      }
+
+      if (await purchasedCollectionProductAlreadyExists(uid, purchasedAt)) {
+        throw Error('document whose purchased_at is given one already exists.');
       }
 
       const product = await fetchProduct(productId);
@@ -125,6 +100,8 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: paymentMethod,
+        purchased_at: purchasedAt,
+        vendor_product_id: vendorProductId,
 
         created_at: now,
         last_edited_at: now,

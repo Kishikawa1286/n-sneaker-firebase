@@ -52,6 +52,8 @@ const addDefaultCollectionProduct = async (accountId: string)
 
       account_id: accountId,
       payment_method: 'sign_up_reward',
+      vendor_product_id: '',
+      purchased_at: '',
 
       created_at: now,
       last_edited_at: now,

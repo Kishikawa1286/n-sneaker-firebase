@@ -1,3 +1,5 @@
-import * as AddCollectionProduct from './addCollectionProduct';
+import * as AddCollectionProductOnRestoringPurchase from './addCollectionProductOnRestoringPurchase';
+import * as AddCollectionProductOnMakingPurchase from './addCollectionProductOnMakingPurchase';
 
-export const addCollectionProduct = AddCollectionProduct;
+export const addCollectionProductOnRestoringPurchase = AddCollectionProductOnRestoringPurchase;
+export const addCollectionProductOnMakingPurchase = AddCollectionProductOnMakingPurchase;
