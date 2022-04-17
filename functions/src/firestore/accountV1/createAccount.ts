@@ -2,6 +2,7 @@ import AccountV1 from '../../interfaces/accountV1';
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
 import ProductV1 from '../../interfaces/productV1';
 import admin from '../../utils/firestore';
+import { incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions128MB } from '../../utils/functions';
 
 const { DEFAULT_PRODUCT_ID } = process.env;
@@ -21,22 +22,6 @@ const fetchDefaultProduct = async (): Promise<ProductV1> => {
     return product;
   } catch (e) {
     throw Error('failed to fetch product.');
-  }
-};
-
-const incrementNumberOfHolders = async (): Promise<void> => {
-  try {
-    if (DEFAULT_PRODUCT_ID === undefined) {
-      throw Error('DEFAULT_PRODUCT_ID is not set.');
-    }
-    const ref = admin.firestore()
-      .collection('products_v1')
-      .doc(DEFAULT_PRODUCT_ID);
-    ref.set({
-      number_of_holders: admin.firestore.FieldValue.increment(1),
-    }, { merge: true });
-  } catch (e) {
-    throw Error('failed to increment number_of_holders.');
   }
 };
 
@@ -84,7 +69,7 @@ const addDefaultCollectionProduct = async (accountId: string)
       transparent_background_images: product.transparent_background_images,
     };
     await collectionProductDocumentRef.set(collectionProduct, { merge: true });
-    await incrementNumberOfHolders();
+    await incrementNumberOfHolders(product.id);
   } catch (e) {
     throw Error('failed to increment number_of_holders.');
   }
