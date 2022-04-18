@@ -1,0 +1,42 @@
+// @return {boolean}
+function isAuthenticated() {
+  return request.auth != null;
+}
+
+// @return {boolean}
+function isAdmin() {
+  return request.auth.token.admin == true;
+ }
+
+// @param {string} id - User id
+// @return {boolean}
+function uidMatches(id) {
+  return id == request.auth.uid;
+}
+
+// @param {array} paths - e.g. ['collection name', 'document id']
+// @return {boolean}
+function docExists(paths) {
+  return exists(getPath(paths));
+}
+
+// @return {string} - Authentication UID
+function getAuthUid() {
+  return request.auth.uid;
+}
+
+// @return {string} - Authentication Email
+function getAuthEmail() {
+  return request.auth.token.email;
+}
+
+// @return {object} - Requested Data
+function getRequestedData() {
+  return request.resource.data;
+}
+
+// @param {array} paths - e.g. ['collection name', 'document id', 'collection name', 'document id']
+// @return {path} - Document path
+function getPath(paths) {
+  return path([['databases', database, 'documents'].join('/'), paths.join('/')].join('/'));
+}

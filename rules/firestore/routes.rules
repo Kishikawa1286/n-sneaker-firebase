@@ -1,0 +1,33 @@
+match /accounts_v1/{accountId} {
+  allow read: if getAccount();
+  allow read, write: if isAdmin();
+}
+
+match /admin_accounts_v1/{adminAccountId} {
+  allow read: if isAdmin();
+}
+
+match /collection_products_v1/{collectionProductId} {
+  allow read: if getCollectionProduct();
+  allow read, write: if isAdmin();
+}
+
+match /launch_configs_v1/{launchConfigsId} {
+  allow read: if isAuthenticated();
+  allow read, write: if isAdmin();
+}
+
+match /market_page_tabs_v1/{marketPageTabsId} {
+  allow read: if isAuthenticated();
+  allow read, write: if isAdmin();
+}
+
+match /products_v1/{productId} {
+  allow read: if isAuthenticated();
+  allow read, write: if isAdmin();
+}
+
+match /products_v1/{productId}/product_glb_files_v1/{productGlbFileId} {
+  allow read: if isAuthenticated();
+  allow read, write: if isAdmin();
+}

@@ -1,1 +1,3 @@
 *.log
+firestore.rules
+storage.rules

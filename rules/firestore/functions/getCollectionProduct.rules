@@ -1,0 +1,3 @@
+function getCollectionProduct() {
+  return uidMatches(getResourceData().account_id);
+}

@@ -1,0 +1,3 @@
+function getAccount() {
+  return uidMatches(getResourceData().id);
+}
