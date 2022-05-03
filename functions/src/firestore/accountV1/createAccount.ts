@@ -92,6 +92,8 @@ export default functions128MB.https.onCall(async (data, context) => {
     number_of_collection_products: 1,
     created_at: now,
     last_edited_at: now,
+    point: 1,
+    last_signed_in_at: now,
   };
   try {
     // ドキュメントがない場合のみ新規作成
