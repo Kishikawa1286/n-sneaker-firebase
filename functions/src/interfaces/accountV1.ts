@@ -5,4 +5,6 @@ export default interface AccountV1 {
   number_of_collection_products: number,
   created_at: admin.firestore.Timestamp,
   last_edited_at: admin.firestore.Timestamp,
+  point: number,
+  last_signed_in_at: admin.firestore.Timestamp,
 }
