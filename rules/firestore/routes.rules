@@ -13,12 +13,12 @@ match /collection_products_v1/{collectionProductId} {
 }
 
 match /launch_configs_v1/{launchConfigsId} {
-  allow read: if isAuthenticated();
+  allow read;
   allow read, write: if isAdmin();
 }
 
 match /market_page_tabs_v1/{marketPageTabsId} {
-  allow read: if isAuthenticated();
+  allow read;
   allow read, write: if isAdmin();
 }
 

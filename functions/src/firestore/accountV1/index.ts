@@ -1,5 +1,5 @@
 import * as CreateAccount from './createAccount';
-import * as OnSinedIn from './onSignedIn';
+import * as OnSignedIn from './onSignedIn';
 
 export const createAccount = CreateAccount;
-export const onSignedIn = OnSinedIn;
+export const onSignedIn = OnSignedIn;
