@@ -5,6 +5,7 @@ export default interface ProductV1 {
   restorable_adapty_vendor_product_ids: Array<string>,
 
   vivsible_in_market: boolean,
+  available_in_trial: boolean,
 
   id: string,
 

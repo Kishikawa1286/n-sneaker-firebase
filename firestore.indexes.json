@@ -61,6 +61,20 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "available_in_trial",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "products_v1",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
           "fieldPath": "series",
           "order": "ASCENDING"
         },
