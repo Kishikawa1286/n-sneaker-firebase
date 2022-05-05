@@ -1,4 +1,14 @@
+import AccountV1 from '../../interfaces/accountV1';
 import admin from '../firestore';
+
+export const fetchAccount = async (accountId: string): Promise<AccountV1> => {
+  const documentRef = admin.firestore()
+    .collection('accounts_v1')
+    .doc(accountId);
+  const snapshot = await documentRef.get();
+  const account = snapshot.data() as AccountV1;
+  return account;
+};
 
 export const incrementNumberOfCollectionProducts = async (accountId: string): Promise<void> => {
   try {

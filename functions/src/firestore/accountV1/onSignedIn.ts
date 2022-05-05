@@ -1,7 +1,7 @@
 import AccountV1 from '../../interfaces/accountV1';
 import admin from '../../utils/firestore';
 import { functions128MB } from '../../utils/functions';
-import { incrementPoint, updateLastSignedInAt } from '../../utils/firestore/accountV1';
+import { fetchAccount, incrementPoint, updateLastSignedInAt } from '../../utils/firestore/accountV1';
 
 const tryIncrementPoint = async (account: AccountV1) => {
   const lastSignedInAt = account.last_signed_in_at.toDate();
@@ -35,11 +35,7 @@ export default functions128MB.https.onCall(async (data, context) => {
   }
   const { uid } = auth;
 
-  const documentRef = admin.firestore()
-    .collection('accounts_v1')
-    .doc(uid);
-  const snapshot = await documentRef.get();
-  const account = snapshot.data() as AccountV1;
+  const account = await fetchAccount(uid);
 
   await tryIncrementPoint(account);
   await updateLastSignedInAt(uid);
