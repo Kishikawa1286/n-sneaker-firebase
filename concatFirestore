@@ -9,6 +9,8 @@ readonly funcs_dir='/functions'
 readonly in_files=(
   'getAccount.rules'
   'getCollectionProduct.rules'
+  'getGalleryPostCreate.rules'
+  'getGalleryPostDelete.rules'
 )
 readonly out_file='firestore.rules'
 

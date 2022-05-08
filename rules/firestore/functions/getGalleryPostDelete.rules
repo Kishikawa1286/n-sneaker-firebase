@@ -1,0 +1,3 @@
+function getGalleryPostDelete() {
+  return isAuthenticated();
+}

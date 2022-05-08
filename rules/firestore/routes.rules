@@ -19,20 +19,22 @@ match /launch_configs_v1/{launchConfigsId} {
 
 match /market_page_tabs_v1/{marketPageTabsId} {
   allow read;
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
 }
 
 match /products_v1/{productId} {
   allow read: if isAuthenticated();
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
 }
 
 match /products_v1/{productId}/product_glb_files_v1/{productGlbFileId} {
   allow read: if isAuthenticated();
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
 }
 
-match /sign_in_rewards_v1/{signInRewardId} {
-  allow read;
-  allow read, write: if isAdmin();
+match /gallery_posts_v1/{galleryPostId} {
+  allow read: if isAuthenticated();
+  allow create: if getGalleryPostCreate() || isAdmin();
+  allow delete: if getGalleryPostDelete() || isAdmin();
+  allow update: if isAdmin();
 }

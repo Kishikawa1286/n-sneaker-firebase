@@ -1,13 +1,20 @@
 match /product_glb_file_images/{productId}/{productGlbFileId}/{productGlbFileImageName} {
   allow read: if isAuthenticated();
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
 }
 
 match /product_glb_files/{productId}/{productGlbFileName} {
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
 }
 
 match /product_images/{productId}/{productImageName} {
   allow read: if isAuthenticated();
-  allow read, write: if isAdmin();
+  allow write: if isAdmin();
+}
+
+match /gallery_post_images/{accountId}/{galleryPostId}/{galleryPostImageName} {
+  allow read: if isAuthenticated();
+  allow create: if isAuthenticated() || isAdmin();
+  allow delete: if isAuthenticated() || isAdmin();
+  allow update: if isAdmin();
 }
