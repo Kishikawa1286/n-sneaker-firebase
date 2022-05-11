@@ -4,7 +4,7 @@ match /product_glb_file_images/{productId}/{productGlbFileId}/{productGlbFileIma
 }
 
 match /product_glb_files/{productId}/{productGlbFileName} {
-  allow write: if isAdmin();
+  allow read, write: if isAdmin();
 }
 
 match /product_images/{productId}/{productImageName} {
