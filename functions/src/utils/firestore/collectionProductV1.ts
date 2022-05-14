@@ -22,14 +22,12 @@ Promise<boolean> => {
 };
 
 export const purchasedCollectionProductAlreadyExists = async (
-  accountId: string,
-  purchasedId: string,
+  vendorTransactionId: string,
 ):Promise<boolean> => {
   try {
     const querySnapshot = await admin.firestore()
       .collection('collection_products_v1')
-      .where('account_id', '==', accountId)
-      .where('purchased_id', '==', purchasedId)
+      .where('vendor_transaction_id', '==', vendorTransactionId)
       .limit(1)
       .get();
     if (querySnapshot.docs.length === 0) {

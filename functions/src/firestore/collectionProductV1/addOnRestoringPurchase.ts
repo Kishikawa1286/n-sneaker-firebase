@@ -7,11 +7,11 @@ import {
   fetchAllCollectionProducts, generatePaymentMethod,
 } from '../../utils/firestore/collectionProductV1';
 import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
-import { functions128MB } from '../../utils/functions';
+import { functions512MB } from '../../utils/functions';
 
 interface AddCollectionProductArgs { product_id: string }
 
-export default functions128MB.https
+export default functions512MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
 
@@ -27,21 +27,22 @@ export default functions128MB.https
       }
 
       const product = await fetchProduct(productId);
-
-      const allCollectionProducts = await fetchAllCollectionProducts(uid, undefined);
-      const purchaseIdsOfAllCollectionProducts = allCollectionProducts
-        .map((collectionProduct) => collectionProduct.purchase_id);
       const restorableVendorProductIds = [
         ...product.restorable_adapty_vendor_product_ids,
         ...convertPaywallIdToVendorProductIds(product.adapty_paywall_id),
       ];
 
+      const allCollectionProducts = await fetchAllCollectionProducts(uid, undefined);
+      const purchaseIdsOfAllCollectionProducts = allCollectionProducts
+        .map((collectionProduct) => collectionProduct.vendor_transaction_id);
+
       const nonSubscriptions = await fetchNonSubscriptions(uid);
+      console.log(nonSubscriptions.map((ns) => ns.vendor_transaction_id));
       // adaptyのデータとfirestoreのデータを照合してfirestoreに登録できていない決済を見つける
       const incompletedNonSubscriptions = nonSubscriptions
         .filter(
           (nonSubscription) => !purchaseIdsOfAllCollectionProducts
-            .includes(nonSubscription.purchase_id),
+            .includes(nonSubscription.vendor_transaction_id ?? 'not set'),
         );
       const restorableNonSubscriptions = incompletedNonSubscriptions
         .filter(
@@ -53,6 +54,10 @@ export default functions128MB.https
         throw Error('no restorable non-subscription exists.');
       }
       const restoredNonSubscription = restorableNonSubscriptions[0];
+      const restoredVendorTransactionId = restoredNonSubscription.vendor_transaction_id;
+      if (restoredVendorTransactionId === null) {
+        throw Error('restoredNonSubscription.vendor_transaction_id is null.');
+      }
 
       // no document created yet
       const documentRef = admin.firestore().collection('collection_products_v1').doc();
@@ -62,7 +67,7 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: generatePaymentMethod(restoredNonSubscription.store ?? ''),
-        purchase_id: restoredNonSubscription.purchase_id,
+        vendor_transaction_id: restoredVendorTransactionId,
         purchased_at: restoredNonSubscription.purchased_at,
         vendor_product_id: restoredNonSubscription.vendor_product_id ?? '',
 

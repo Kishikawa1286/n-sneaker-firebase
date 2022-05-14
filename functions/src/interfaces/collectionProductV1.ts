@@ -5,7 +5,7 @@ export default interface CollectionProductV1 {
 
   account_id: string,
   payment_method: string,
-  purchase_id: string,
+  vendor_transaction_id: string,
   vendor_product_id: string,
   purchased_at: string, // Iso8601
 

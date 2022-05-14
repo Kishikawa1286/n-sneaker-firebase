@@ -34,7 +34,7 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: 'sign_in_reward',
-        purchase_id: '',
+        vendor_transaction_id: '',
         purchased_at: '',
         vendor_product_id: '',
 

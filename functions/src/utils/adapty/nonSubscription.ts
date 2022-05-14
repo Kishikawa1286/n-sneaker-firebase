@@ -21,12 +21,11 @@ Promise<Array<AdaptyNonSubscription>> => {
   /// Values are an array of Non Subscription objects.
   /// Can be null if the customer has no purchases.
   const allNonSubscriptions = data.non_subscriptions;
-  if (allNonSubscriptions === undefined) {
-    throw Error('validation failed. (res.data.data.non_subscriptions is undefined)');
+  if (allNonSubscriptions === undefined || allNonSubscriptions === null) {
+    throw Error('validation failed. (res.data.data.non_subscriptions is undefined or null)');
   }
   const vendorProductIds = Object.keys(allNonSubscriptions);
   const flattenedAllNonSubscriptions = vendorProductIds.map(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (vendorProductId) => allNonSubscriptions[vendorProductId] as Array<AdaptyNonSubscription>,
   ).flat();
   return flattenedAllNonSubscriptions;

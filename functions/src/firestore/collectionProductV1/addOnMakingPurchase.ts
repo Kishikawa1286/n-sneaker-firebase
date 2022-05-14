@@ -11,13 +11,13 @@ axios.defaults.baseURL = 'https://api.adapty.io/api/v1/sdk';
 
 interface AddCollectionProductArgs {
   product_id: string,
-  purchase_id: string,
+  vendor_transaction_id: string,
 }
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
-    const purchaseId = data.purchase_id;
+    const vendorTransactionId = data.vendor_transaction_id;
 
     const { auth } = context;
     try {
@@ -29,20 +29,19 @@ export default functions128MB.https
       if (await collectionProductExists(uid, productId)) {
         throw Error('document already exists.');
       }
+      if (await purchasedCollectionProductAlreadyExists(vendorTransactionId)) {
+        throw Error('document whose vendor_transaction_id is given one already exists.');
+      }
 
       const allNonSubscriptions = await fetchNonSubscriptions(uid);
       // 空または要素1つ
       const nonSubscriptionsSpecifiedWithVendorProductId = allNonSubscriptions.filter(
-        (ns) => ns.purchase_id === purchaseId,
+        (ns) => ns.vendor_transaction_id === vendorTransactionId,
       );
       if (nonSubscriptionsSpecifiedWithVendorProductId.length === 0) {
         throw Error('nonSubscriptionsSpecifiedWithVendorProductId is empty.');
       }
       const nonSubscription = nonSubscriptionsSpecifiedWithVendorProductId[0];
-
-      if (await purchasedCollectionProductAlreadyExists(uid, nonSubscription.purchase_id)) {
-        throw Error('document whose purchased_at is given one already exists.');
-      }
 
       const product = await fetchProduct(productId);
 
@@ -54,7 +53,7 @@ export default functions128MB.https
 
         account_id: uid,
         payment_method: generatePaymentMethod(nonSubscription.store ?? ''),
-        purchase_id: nonSubscription.purchase_id,
+        vendor_transaction_id: vendorTransactionId,
         purchased_at: nonSubscription.purchased_at,
         vendor_product_id: nonSubscription.vendor_product_id ?? '',
 
