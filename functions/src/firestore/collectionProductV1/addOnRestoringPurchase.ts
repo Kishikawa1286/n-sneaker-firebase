@@ -2,8 +2,8 @@ import CollectionProductV1 from '../../interfaces/collectionProductV1';
 import admin from '../../utils/firestore';
 import { incrementNumberOfCollectionProducts } from '../../utils/firestore/accountV1';
 import {
-  collectionProductExists, convertPaywallIdToVendorProductIds,
-  fetchAllCollectionProducts, generatePaymentMethod,
+  collectionProductExists,
+  fetchAllCollectionProducts, generatePaymentMethod, packageIdToProductId,
 } from '../../utils/firestore/collectionProductV1';
 import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions512MB } from '../../utils/functions';
@@ -27,9 +27,9 @@ export default functions512MB.https
       }
 
       const product = await fetchProduct(productId);
-      const restorableVendorProductIds = [
+      const restorableProductIds = [
         ...product.restorable_revenuecat_package_ids,
-        ...convertPaywallIdToVendorProductIds(product.adapty_paywall_id),
+        ...packageIdToProductId(product.revenuecat_package_id),
       ];
 
       const allCollectionProducts = await fetchAllCollectionProducts(uid, undefined);
@@ -46,7 +46,7 @@ export default functions512MB.https
         // firestoreに未登録の決済の中から指定された商品の購入に使えるものを見つける
       const restorableNonSubscriptions = incompletedNonSubscriptions
         .filter(
-          (nonSubscription) => restorableVendorProductIds
+          (nonSubscription) => restorableProductIds
             .includes(nonSubscription.product_id),
         );
       if (restorableNonSubscriptions.length === 0) {

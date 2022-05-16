@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 
 export default interface ProductV1 {
-  adapty_paywall_id: string,
+  revenuecat_package_id: string,
   restorable_revenuecat_package_ids: Array<string>,
 
   vivsible_in_market: boolean,

@@ -70,16 +70,16 @@ export const fetchAllCollectionProducts = async (
   }
 };
 
-export const convertPaywallIdToVendorProductIds = (paywallId: string): Array<string> => {
+export const packageIdToProductId = (packageId: string): Array<string> => {
   if (FLAVOR === 'prod') {
     return [
-      `com.nevermind.nsneaker.play_store.${paywallId}`,
-      `com.nevermind.nsneaker.app_store.${paywallId}`,
+      `com.nevermind.nsneaker.play_store.${packageId}`,
+      `com.nevermind.nsneaker.app_store.${packageId}`,
     ];
   }
   return [
-    `com.nevermind.nsneakerdev.play_store.${paywallId}`,
-    `com.nevermind.nsneakerdev.app_store.${paywallId}`,
+    `com.nevermind.nsneakerdev.play_store.${packageId}`,
+    `com.nevermind.nsneakerdev.app_store.${packageId}`,
   ];
 };
 
