@@ -28,7 +28,7 @@ export default functions512MB.https
 
       const product = await fetchProduct(productId);
       const restorableVendorProductIds = [
-        ...product.restorable_adapty_vendor_product_ids,
+        ...product.restorable_revenuecat_package_ids,
         ...convertPaywallIdToVendorProductIds(product.adapty_paywall_id),
       ];
 
