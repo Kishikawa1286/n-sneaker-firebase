@@ -1,23 +1,20 @@
-import axios from 'axios';
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
-import { fetchNonSubscriptions } from '../../utils/adapty/nonSubscription';
 import admin from '../../utils/firestore';
 import { incrementNumberOfCollectionProducts } from '../../utils/firestore/accountV1';
 import { collectionProductExists, generatePaymentMethod, purchasedCollectionProductAlreadyExists } from '../../utils/firestore/collectionProductV1';
 import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions128MB } from '../../utils/functions';
-
-axios.defaults.baseURL = 'https://api.adapty.io/api/v1/sdk';
+import { fetchNonSubscriptions } from '../../utils/revenuecat/nonSubscription';
 
 interface AddCollectionProductArgs {
   product_id: string,
-  vendor_transaction_id: string,
+  revenuecat_transaction_id: string,
 }
 
 export default functions128MB.https
   .onCall(async (data: AddCollectionProductArgs, context): Promise<string> => {
     const productId = data.product_id;
-    const vendorTransactionId = data.vendor_transaction_id;
+    const revenuecatTransactionId = data.revenuecat_transaction_id;
 
     const { auth } = context;
     try {
@@ -26,22 +23,23 @@ export default functions128MB.https
       }
       const { uid } = auth;
 
+      // すでに所持している場合
       if (await collectionProductExists(uid, productId)) {
         throw Error('document already exists.');
       }
-      if (await purchasedCollectionProductAlreadyExists(vendorTransactionId)) {
+      // tra
+      if (await purchasedCollectionProductAlreadyExists(revenuecatTransactionId)) {
         throw Error('document whose vendor_transaction_id is given one already exists.');
       }
 
-      const allNonSubscriptions = await fetchNonSubscriptions(uid);
-      // 空または要素1つ
-      const nonSubscriptionsSpecifiedWithVendorProductId = allNonSubscriptions.filter(
-        (ns) => ns.vendor_transaction_id === vendorTransactionId,
+      const nonSubscriptions = await fetchNonSubscriptions(uid);
+      const nonSubscriptionsSpecifiedWithTransactionId = nonSubscriptions.filter(
+        (ns) => ns.id === revenuecatTransactionId,
       );
-      if (nonSubscriptionsSpecifiedWithVendorProductId.length === 0) {
-        throw Error('nonSubscriptionsSpecifiedWithVendorProductId is empty.');
+      if (nonSubscriptionsSpecifiedWithTransactionId.length === 0) {
+        throw Error('nonSubscriptionsSpecifiedWithTransactionId is empty.');
       }
-      const nonSubscription = nonSubscriptionsSpecifiedWithVendorProductId[0];
+      const nonSubscription = nonSubscriptionsSpecifiedWithTransactionId[0];
 
       const product = await fetchProduct(productId);
 
@@ -52,10 +50,11 @@ export default functions128MB.https
         id: documentRef.id,
 
         account_id: uid,
-        payment_method: generatePaymentMethod(nonSubscription.store ?? ''),
-        vendor_transaction_id: vendorTransactionId,
-        purchased_at: nonSubscription.purchased_at,
-        vendor_product_id: nonSubscription.vendor_product_id ?? '',
+
+        payment_method: generatePaymentMethod(nonSubscription.store),
+        revenuecat_transaction_id: revenuecatTransactionId,
+        revenuecat_product_id: nonSubscription.product_id,
+        purchase_date: nonSubscription.purchase_date,
 
         created_at: now,
         last_edited_at: now,

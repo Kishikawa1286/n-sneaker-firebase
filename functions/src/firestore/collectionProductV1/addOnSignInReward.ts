@@ -33,10 +33,11 @@ export default functions128MB.https
         id: documentRef.id,
 
         account_id: uid,
+
         payment_method: 'sign_in_reward',
-        vendor_transaction_id: '',
-        purchased_at: '',
-        vendor_product_id: '',
+        purchase_date: '',
+        revenuecat_transaction_id: '',
+        revenuecat_product_id: '',
 
         created_at: now,
         last_edited_at: now,

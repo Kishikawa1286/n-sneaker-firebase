@@ -22,12 +22,12 @@ Promise<boolean> => {
 };
 
 export const purchasedCollectionProductAlreadyExists = async (
-  vendorTransactionId: string,
+  revenuecatTransactionId: string,
 ):Promise<boolean> => {
   try {
     const querySnapshot = await admin.firestore()
       .collection('collection_products_v1')
-      .where('vendor_transaction_id', '==', vendorTransactionId)
+      .where('revenuecat_transaction_id', '==', revenuecatTransactionId)
       .limit(1)
       .get();
     if (querySnapshot.docs.length === 0) {
@@ -85,10 +85,10 @@ export const convertPaywallIdToVendorProductIds = (paywallId: string): Array<str
 
 export const generatePaymentMethod = (store: string): string => {
   if (store === 'play_store') {
-    return 'play_store_in_app_purchase';
+    return 'play_store';
   }
   if (store === 'app_store') {
-    return 'app_store_in_app_purchase';
+    return 'app_store';
   }
   return 'unknown';
 };

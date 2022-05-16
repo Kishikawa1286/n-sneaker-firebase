@@ -1,5 +1,4 @@
 import CollectionProductV1 from '../../interfaces/collectionProductV1';
-import { fetchNonSubscriptions } from '../../utils/adapty/nonSubscription';
 import admin from '../../utils/firestore';
 import { incrementNumberOfCollectionProducts } from '../../utils/firestore/accountV1';
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../utils/firestore/collectionProductV1';
 import { fetchProduct, incrementNumberOfHolders } from '../../utils/firestore/productV1';
 import { functions512MB } from '../../utils/functions';
+import { fetchNonSubscriptions } from '../../utils/revenuecat/nonSubscription';
 
 interface AddCollectionProductArgs { product_id: string }
 
@@ -33,31 +33,26 @@ export default functions512MB.https
       ];
 
       const allCollectionProducts = await fetchAllCollectionProducts(uid, undefined);
-      const purchaseIdsOfAllCollectionProducts = allCollectionProducts
-        .map((collectionProduct) => collectionProduct.vendor_transaction_id);
+      const revenuecatTransactionIdsOfAllCollectionProducts = allCollectionProducts
+        .map((collectionProduct) => collectionProduct.revenuecat_transaction_id);
 
       const nonSubscriptions = await fetchNonSubscriptions(uid);
-      console.log(nonSubscriptions.map((ns) => ns.vendor_transaction_id));
-      // adaptyのデータとfirestoreのデータを照合してfirestoreに登録できていない決済を見つける
+      // revenuecatのデータとfirestoreのデータを照合してfirestoreに登録できていない決済を見つける
       const incompletedNonSubscriptions = nonSubscriptions
         .filter(
-          (nonSubscription) => !purchaseIdsOfAllCollectionProducts
-            .includes(nonSubscription.vendor_transaction_id ?? 'not set'),
+          (nonSubscription) => !revenuecatTransactionIdsOfAllCollectionProducts
+            .includes(nonSubscription.id ?? 'not set'),
         );
+        // firestoreに未登録の決済の中から指定された商品の購入に使えるものを見つける
       const restorableNonSubscriptions = incompletedNonSubscriptions
         .filter(
           (nonSubscription) => restorableVendorProductIds
-            .includes(nonSubscription.vendor_product_id ?? 'not set'),
+            .includes(nonSubscription.product_id),
         );
-
       if (restorableNonSubscriptions.length === 0) {
         throw Error('no restorable non-subscription exists.');
       }
       const restoredNonSubscription = restorableNonSubscriptions[0];
-      const restoredVendorTransactionId = restoredNonSubscription.vendor_transaction_id;
-      if (restoredVendorTransactionId === null) {
-        throw Error('restoredNonSubscription.vendor_transaction_id is null.');
-      }
 
       // no document created yet
       const documentRef = admin.firestore().collection('collection_products_v1').doc();
@@ -66,10 +61,11 @@ export default functions512MB.https
         id: documentRef.id,
 
         account_id: uid,
-        payment_method: generatePaymentMethod(restoredNonSubscription.store ?? ''),
-        vendor_transaction_id: restoredVendorTransactionId,
-        purchased_at: restoredNonSubscription.purchased_at,
-        vendor_product_id: restoredNonSubscription.vendor_product_id ?? '',
+
+        payment_method: generatePaymentMethod('app_store'),
+        revenuecat_transaction_id: restoredNonSubscription.id,
+        revenuecat_product_id: restoredNonSubscription.product_id,
+        purchase_date: restoredNonSubscription.purchase_date,
 
         created_at: now,
         last_edited_at: now,

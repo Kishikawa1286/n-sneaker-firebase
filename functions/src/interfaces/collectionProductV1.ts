@@ -4,10 +4,11 @@ export default interface CollectionProductV1 {
   id: string,
 
   account_id: string,
+
   payment_method: string,
-  vendor_transaction_id: string,
-  vendor_product_id: string,
-  purchased_at: string, // Iso8601
+  revenuecat_transaction_id: string,
+  revenuecat_product_id: string,
+  purchase_date: string, // Iso8601
 
   created_at: admin.firestore.Timestamp,
   last_edited_at: admin.firestore.Timestamp,
