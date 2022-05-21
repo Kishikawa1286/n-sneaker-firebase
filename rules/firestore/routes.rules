@@ -38,3 +38,10 @@ match /gallery_posts_v1/{galleryPostId} {
   allow delete: if getGalleryPostDelete() || isAdmin();
   allow update: if isAdmin();
 }
+
+match /gallery_posts_v1/{galleryPostId}/favorite_gallery_posts_v1/{favoriteGalleryPostId} {
+  allow read: if isAuthenticated();
+  allow create: if isAuthenticated();
+  allow delete: if isAuthenticated();
+  allow update: if isAdmin();
+}
