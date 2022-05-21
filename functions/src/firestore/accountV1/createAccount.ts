@@ -91,6 +91,7 @@ export default functions128MB.https.onCall(async (data, context) => {
   const account: AccountV1 = {
     id: uid,
     number_of_collection_products: 1,
+    number_of_gallery_posts: 0,
     created_at: now,
     last_edited_at: now,
     point: 1,
